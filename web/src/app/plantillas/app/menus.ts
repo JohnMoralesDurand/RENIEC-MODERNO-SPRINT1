@@ -28,6 +28,7 @@ export const MENUS: Record<Rol, MenuRol> = {
   administrador: {
     grupo: 'Administración', etiquetaRol: 'Administración', fondoRol: '#FCE8EE', textoRol: '#B0123E', colorAvatar: '#B0123E',
     items: [
+      { texto: 'Usuarios', ruta: '/admin/usuarios', icono: 'users' },
       { texto: 'Mi perfil', ruta: '/admin/cuenta', icono: 'user' },
     ],
   },

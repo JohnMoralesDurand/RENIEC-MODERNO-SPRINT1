@@ -13,6 +13,7 @@ import { PaginaError } from './epicas/epica1-autenticacion/paginas/errores/pagin
 import { MiInicio } from './epicas/epica1-autenticacion/paginas/mi-inicio/mi-inicio';
 import { MiCuenta } from './epicas/epica1-autenticacion/paginas/mi-cuenta/mi-cuenta';
 import { PerfilOperador } from './epicas/epica1-autenticacion/paginas/perfil-operador/perfil-operador';
+import { AdminUsuarios } from './epicas/epica1-autenticacion/paginas/admin-usuarios/admin-usuarios';
 
 // Las pantallas de las épicas 2 a 5 se agregan en los sprints siguientes.
 export const routes: Routes = [
@@ -62,7 +63,8 @@ export const routes: Routes = [
     canActivate: [requiereRol('administrador')],
     canActivateChild: [requiereRol('administrador')],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'cuenta' },
+      { path: '', pathMatch: 'full', redirectTo: 'usuarios' },
+      { path: 'usuarios', component: AdminUsuarios, title: 'Gestión de usuarios · CitaRENIEC' },
       { path: 'cuenta', component: MiCuenta, title: 'Mi perfil · CitaRENIEC' },
     ],
   },
