@@ -16,16 +16,19 @@ export const MENUS: Record<Rol, MenuRol> = {
     grupo: 'Mi espacio', etiquetaRol: 'Ciudadano', fondoRol: '#E6EEF8', textoRol: '#0B4F9C', colorAvatar: '#0B4F9C',
     items: [
       { texto: 'Mi inicio', ruta: '/ciudadano/inicio', icono: 'home' },
+      { texto: 'Mi cuenta', ruta: '/ciudadano/cuenta', icono: 'user' },
     ],
   },
   operador: {
     grupo: 'Ventanilla', etiquetaRol: 'Operador de ventanilla', fondoRol: '#E3F5F5', textoRol: '#0D7377', colorAvatar: '#0F766E',
     items: [
+      { texto: 'Mi perfil', ruta: '/operador/perfil', icono: 'user' },
     ],
   },
   administrador: {
     grupo: 'Administración', etiquetaRol: 'Administración', fondoRol: '#FCE8EE', textoRol: '#B0123E', colorAvatar: '#B0123E',
     items: [
+      { texto: 'Mi perfil', ruta: '/admin/cuenta', icono: 'user' },
     ],
   },
 };

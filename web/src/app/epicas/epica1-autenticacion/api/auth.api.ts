@@ -1,12 +1,14 @@
 // Épica 1 · Autenticación. Simula los endpoints de la API Laravel (Sanctum):
 // POST /api/v1/auth/login · POST /auth/logout · GET /auth/me (HU-16)
+// POST /auth/forgot-password · POST /auth/reset-password (HU-17)
 import { ApiError } from '../../../nucleo/api/api-error';
-import { bd, cifrar, esperar, guardar, publico, tokenAleatorio } from '../../../nucleo/api/base-datos';
+import { bd, cifrar, enviarCorreo, esperar, guardar, publico, tokenAleatorio } from '../../../nucleo/api/base-datos';
 import { Usuario, UsuarioPublico } from '../../../nucleo/modelos';
 
 export const MINUTOS_SESION = 30;   // la sesión vence tras 30 min sin actividad (HU-16)
 export const MAX_INTENTOS = 5;      // bloqueo tras 5 intentos fallidos (HU-16)
 export const MINUTOS_BLOQUEO = 15;
+export const MINUTOS_ENLACE = 60;   // el enlace de recuperación vence a los 60 min (HU-17)
 
 export const RX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const RX_DNI = /^\d{8}$/;
@@ -111,3 +113,46 @@ export function salir(token: string): void {
   db.sesiones = db.sesiones.filter((x) => x.token !== token);
   guardar();
 }
+
+/** HU-17 · Recuperar contraseña (el mensaje es el mismo exista o no el correo). */
+export async function solicitarRecuperacion(correo: string): Promise<string> {
+  await esperar();
+  if (!RX_CORREO.test((correo || '').trim())) throw new ApiError(422, 'Escribe un correo válido.', { correo: 'Escribe un correo válido, por ejemplo nombre@correo.com' });
+  const db = bd();
+  const u = db.usuarios.find((x) => x.correo.toLowerCase() === correo.trim().toLowerCase());
+  if (u) {
+    db.tokensClave.forEach((t) => { if (t.usuarioId === u.id) t.usado = true; }); // solo sirve el último enlace
+    db.tokensClave = db.tokensClave.filter((t) => Date.now() - t.creado < 24 * 3600000);
+    const token = tokenAleatorio(32);
+    db.tokensClave.push({ token, usuarioId: u.id, creado: Date.now(), usado: false });
+    enviarCorreo(u.correo, 'Recupera tu contraseña de CitaRENIEC',
+      `Hola, ${u.nombres.split(' ')[0]}. Para crear una nueva contraseña usa este enlace. Vence en ${MINUTOS_ENLACE} minutos y solo puede usarse una vez.`,
+      `/nueva-clave/${token}`);
+    guardar();
+  }
+  return 'Si el correo está registrado, te enviamos un enlace para recuperar tu contraseña.';
+}
+
+export function enlaceValido(token: string): boolean {
+  const t = bd().tokensClave.find((x) => x.token === token);
+  return !!t && !t.usado && Date.now() - t.creado <= MINUTOS_ENLACE * 60000;
+}
+
+export async function restablecerClave(token: string, clave: string, confirmar: string): Promise<string> {
+  await esperar();
+  const db = bd();
+  if (!enlaceValido(token)) throw new ApiError(422, 'El enlace venció o ya fue usado. Solicita uno nuevo.');
+  const c = validarClave(clave);
+  if (c) throw new ApiError(422, c, { clave: c });
+  if (clave !== confirmar) throw new ApiError(422, 'Las contraseñas no coinciden.', { confirmar: 'Las contraseñas no coinciden.' });
+  const t = db.tokensClave.find((x) => x.token === token)!;
+  const u = db.usuarios.find((x) => x.id === t.usuarioId)!;
+  u.clave = cifrar(clave);
+  u.debeCambiarClave = false;
+  db.tokensClave.forEach((x) => { if (x.usuarioId === u.id) x.usado = true; });
+  db.sesiones = db.sesiones.filter((s) => s.usuarioId !== u.id);
+  guardar();
+  return 'Tu contraseña se actualizó. Ya puedes ingresar.';
+}
+
+export const buzon = () => bd().buzon;
