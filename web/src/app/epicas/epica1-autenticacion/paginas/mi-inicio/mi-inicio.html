@@ -1,0 +1,29 @@
+<div class="encabezado-pagina">
+  <div><h1>Hola, {{ usuario()?.nombres?.split(' ')?.[0] }}</h1><p>{{ hoy }} · Sede Huánuco</p></div>
+</div>
+
+<div class="superior">
+  <section class="tarjeta">
+    <div class="fila-entre"><h3>Tu cuenta</h3><span class="insignia insignia-verde"><app-icono nombre="check" [tam]="14" />Activa</span></div>
+    @if (usuario(); as u) {
+      <div class="cita-datos" style="margin-top:16px">
+        <div><span class="et">Nombre</span><b>{{ u.nombres }} {{ u.apellidos }}</b></div>
+        <div><span class="et">DNI</span><b>{{ enmascararDni(u.dni) }}</b></div>
+        <div><span class="et">Correo</span><b>{{ u.correo }}</b></div>
+        <div><span class="et">Celular</span><b>{{ enmascararCelular(u.celular) }}</b></div>
+      </div>
+    }
+    <a class="enlace-flecha" routerLink="/ciudadano/cuenta">Ir a Mi cuenta<app-icono nombre="arrow-right" [tam]="18" /></a>
+  </section>
+
+  <section class="tarjeta">
+    <h3>Próximamente</h3>
+    <p class="texto-3" style="margin-top:8px">Estas opciones se agregan en los siguientes sprints del proyecto:</p>
+    @for (p of proximos; track p.titulo) {
+      <div class="aviso-item">
+        <app-icono [nombre]="p.icono" />
+        <div><p><b>{{ p.titulo }}</b></p><small class="texto-2">{{ p.sprint }}</small></div>
+      </div>
+    }
+  </section>
+</div>
