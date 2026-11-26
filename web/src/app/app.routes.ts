@@ -11,6 +11,8 @@ import { NuevaClave } from './epicas/epica1-autenticacion/paginas/nueva-clave/nu
 import { BuzonDemo } from './epicas/epica1-autenticacion/paginas/buzon-demo/buzon-demo';
 import { PaginaError } from './epicas/epica1-autenticacion/paginas/errores/pagina-error';
 import { MiInicio } from './epicas/epica1-autenticacion/paginas/mi-inicio/mi-inicio';
+import { MiCuenta } from './epicas/epica1-autenticacion/paginas/mi-cuenta/mi-cuenta';
+import { PerfilOperador } from './epicas/epica1-autenticacion/paginas/perfil-operador/perfil-operador';
 
 // Las pantallas de las épicas 2 a 5 se agregan en los sprints siguientes.
 export const routes: Routes = [
@@ -37,6 +39,31 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
       { path: 'inicio', component: MiInicio, title: 'Mi inicio · CitaRENIEC' },
+      { path: 'cuenta', component: MiCuenta, title: 'Mi cuenta · CitaRENIEC' },
+    ],
+  },
+
+  // ---------- Operador de ventanilla ----------
+  {
+    path: 'operador',
+    component: PlantillaApp,
+    canActivate: [requiereRol('operador')],
+    canActivateChild: [requiereRol('operador')],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'perfil' },
+      { path: 'perfil', component: PerfilOperador, title: 'Mi perfil · CitaRENIEC' },
+    ],
+  },
+
+  // ---------- Administrador ----------
+  {
+    path: 'admin',
+    component: PlantillaApp,
+    canActivate: [requiereRol('administrador')],
+    canActivateChild: [requiereRol('administrador')],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'cuenta' },
+      { path: 'cuenta', component: MiCuenta, title: 'Mi perfil · CitaRENIEC' },
     ],
   },
 
