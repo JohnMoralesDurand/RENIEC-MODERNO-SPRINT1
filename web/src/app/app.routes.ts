@@ -6,10 +6,12 @@ import { PlantillaApp } from './plantillas/app/plantilla-app';
 // Épica 1 · Autenticación y gestión de usuarios
 import { Inicio } from './epicas/epica1-autenticacion/paginas/inicio/inicio';
 import { Ingresar } from './epicas/epica1-autenticacion/paginas/ingresar/ingresar';
+import { Registro } from './epicas/epica1-autenticacion/paginas/registro/registro';
 import { Recuperar } from './epicas/epica1-autenticacion/paginas/recuperar/recuperar';
 import { NuevaClave } from './epicas/epica1-autenticacion/paginas/nueva-clave/nueva-clave';
 import { BuzonDemo } from './epicas/epica1-autenticacion/paginas/buzon-demo/buzon-demo';
 import { PaginaError } from './epicas/epica1-autenticacion/paginas/errores/pagina-error';
+import { Privacidad } from './epicas/epica1-autenticacion/paginas/privacidad/privacidad';
 import { MiInicio } from './epicas/epica1-autenticacion/paginas/mi-inicio/mi-inicio';
 import { MiCuenta } from './epicas/epica1-autenticacion/paginas/mi-cuenta/mi-cuenta';
 import { PerfilOperador } from './epicas/epica1-autenticacion/paginas/perfil-operador/perfil-operador';
@@ -23,10 +25,12 @@ export const routes: Routes = [
     component: PlantillaPublica,
     children: [
       { path: '', component: Inicio, title: 'CitaRENIEC Huánuco · Reserva tu cita sin hacer cola' },
+      { path: 'privacidad', component: Privacidad, title: 'Política de privacidad · CitaRENIEC' },
       { path: '403', component: PaginaError, data: { codigo: 403 }, title: 'Acceso denegado · CitaRENIEC' },
     ],
   },
   { path: 'ingresar', component: Ingresar, canActivate: [soloInvitado], title: 'Ingresar · CitaRENIEC' },
+  { path: 'registro', component: Registro, canActivate: [soloInvitado], title: 'Crear cuenta · CitaRENIEC' },
   { path: 'recuperar', component: Recuperar, title: 'Recuperar contraseña · CitaRENIEC' },
   { path: 'nueva-clave/:token', component: NuevaClave, title: 'Nueva contraseña · CitaRENIEC' },
   { path: 'buzon', component: BuzonDemo, title: 'Buzón de prueba · CitaRENIEC' },

@@ -1,8 +1,8 @@
 // Épica 1 · Autenticación. Simula los endpoints de la API Laravel (Sanctum):
-// POST /api/v1/auth/login · POST /auth/logout · GET /auth/me (HU-16)
+// POST /api/v1/auth/register (HU-15) · POST /auth/login · POST /auth/logout · GET /auth/me (HU-16)
 // POST /auth/forgot-password · POST /auth/reset-password (HU-17)
 import { ApiError } from '../../../nucleo/api/api-error';
-import { bd, cifrar, enviarCorreo, esperar, guardar, publico, tokenAleatorio } from '../../../nucleo/api/base-datos';
+import { bd, cifrar, enviarCorreo, esperar, guardar, nuevoId, publico, tokenAleatorio } from '../../../nucleo/api/base-datos';
 import { Usuario, UsuarioPublico } from '../../../nucleo/modelos';
 
 export const MINUTOS_SESION = 30;   // la sesión vence tras 30 min sin actividad (HU-16)
@@ -19,6 +19,21 @@ export function validarClave(clave: string): string | null {
   return null;
 }
 
+/** Nivel de seguridad de 0 a 4 (solo orienta: la regla obligatoria es de 8 caracteres). */
+export function nivelClave(clave: string): number {
+  let n = 0;
+  if (clave.length >= 8) n++;
+  if (/[A-ZÁÉÍÓÚÑ]/.test(clave)) n++;
+  if (/\d/.test(clave)) n++;
+  if (clave.length >= 12 || /[^A-Za-z0-9]/.test(clave)) n++;
+  return n;
+}
+
+export interface DatosRegistro {
+  dni: string; nombres: string; apellidos: string; correo: string; celular: string;
+  clave: string; confirmar: string; aceptaDatos: boolean;
+}
+
 function buscarPorIdentificador(id: string): Usuario | undefined {
   const t = id.trim().toLowerCase();
   return bd().usuarios.find((u) => u.dni === t || u.correo.toLowerCase() === t);
@@ -29,6 +44,36 @@ function crearSesion(usuario: Usuario): string {
   bd().sesiones.push({ token, usuarioId: usuario.id, ultimaActividad: Date.now() });
   usuario.ultimoAcceso = new Date().toISOString();
   return token;
+}
+
+/** HU-15 · Registro de ciudadano */
+export async function registrar(d: DatosRegistro): Promise<{ token: string; usuario: UsuarioPublico }> {
+  await esperar();
+  const db = bd();
+  const f: Record<string, string> = {};
+  if (!RX_DNI.test(d.dni || '')) f['dni'] = 'El DNI debe tener 8 dígitos.';
+  else if (db.usuarios.some((u) => u.dni === d.dni)) f['dni'] = 'Este DNI ya está registrado.';
+  if (!d.nombres?.trim()) f['nombres'] = 'Ingresa tus nombres.';
+  if (!d.apellidos?.trim()) f['apellidos'] = 'Ingresa tus apellidos.';
+  if (!RX_CORREO.test((d.correo || '').trim())) f['correo'] = 'Escribe un correo válido, por ejemplo nombre@correo.com';
+  else if (db.usuarios.some((u) => u.correo.toLowerCase() === d.correo.trim().toLowerCase())) f['correo'] = 'Este correo ya está registrado.';
+  if (!RX_CELULAR.test(d.celular || '')) f['celular'] = 'Ingresa 9 dígitos. Ejemplo: 987 654 321';
+  const c = validarClave(d.clave);
+  if (c) f['clave'] = c;
+  if (d.clave !== d.confirmar) f['confirmar'] = 'Las contraseñas no coinciden.';
+  if (!d.aceptaDatos) f['aceptaDatos'] = 'Debes aceptar el tratamiento de datos (Ley N.º 29733).';
+  if (Object.keys(f).length) throw new ApiError(422, 'Revisa los datos marcados.', f);
+
+  const ahora = new Date().toISOString();
+  const usuario: Usuario = {
+    id: nuevoId(), dni: d.dni, nombres: d.nombres.trim(), apellidos: d.apellidos.trim(), correo: d.correo.trim(),
+    celular: d.celular, rol: 'ciudadano', estado: 'activo', ventanilla: null, clave: cifrar(d.clave),
+    debeCambiarClave: false, aceptaDatosFecha: ahora, creado: ahora, ultimoAcceso: null,
+  };
+  db.usuarios.push(usuario);
+  const token = crearSesion(usuario);
+  guardar();
+  return { token, usuario: publico(usuario) };
 }
 
 // Los intentos se cuentan por cuenta: entrar con el DNI o con el correo de la misma persona suma al mismo contador.
