@@ -6,6 +6,9 @@ import { PlantillaApp } from './plantillas/app/plantilla-app';
 // Épica 1 · Autenticación y gestión de usuarios
 import { Inicio } from './epicas/epica1-autenticacion/paginas/inicio/inicio';
 import { Ingresar } from './epicas/epica1-autenticacion/paginas/ingresar/ingresar';
+import { Recuperar } from './epicas/epica1-autenticacion/paginas/recuperar/recuperar';
+import { NuevaClave } from './epicas/epica1-autenticacion/paginas/nueva-clave/nueva-clave';
+import { BuzonDemo } from './epicas/epica1-autenticacion/paginas/buzon-demo/buzon-demo';
 import { PaginaError } from './epicas/epica1-autenticacion/paginas/errores/pagina-error';
 import { MiInicio } from './epicas/epica1-autenticacion/paginas/mi-inicio/mi-inicio';
 
@@ -21,6 +24,9 @@ export const routes: Routes = [
     ],
   },
   { path: 'ingresar', component: Ingresar, canActivate: [soloInvitado], title: 'Ingresar · CitaRENIEC' },
+  { path: 'recuperar', component: Recuperar, title: 'Recuperar contraseña · CitaRENIEC' },
+  { path: 'nueva-clave/:token', component: NuevaClave, title: 'Nueva contraseña · CitaRENIEC' },
+  { path: 'buzon', component: BuzonDemo, title: 'Buzón de prueba · CitaRENIEC' },
 
   // ---------- Ciudadano ----------
   {
